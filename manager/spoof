@@ -1,0 +1,52 @@
+#!/bin/bash
+set -e
+
+# Generate 3 random lowercase words (6 letters each)
+word1=$(tr -dc 'a-z' </dev/urandom | head -c6)
+word2=$(tr -dc 'a-z' </dev/urandom | head -c6)
+word3=$(tr -dc 'a-z' </dev/urandom | head -c6)
+
+SPOOF_APP_NAME="${SPOOF_APP_NAME:-System Service}"
+
+echo "Generated stealth package words:"
+echo "me       -> $word1"
+echo "weishu   -> $word2"
+echo "kernelsu -> $word3"
+echo "Package  -> $word1.$word2.$word3"
+echo "App Name -> $SPOOF_APP_NAME"
+echo ""
+
+export word1 word2 word3
+
+# Rename package directories inside app/src
+find app/src -depth -type d -name 'me' -execdir mv {} "$word1" \;
+find app/src -depth -type d -name 'weishu' -execdir mv {} "$word2" \;
+find app/src -depth -type d -name 'kernelsu' -execdir mv {} "$word3" \;
+
+# Replace package references inside source, manifest, aidl, cpp, and gradle files
+find . -type f \( -name "*.kt" -o -name "*.java" -o -name "*.xml" -o -name "*.aidl" -o -name "*.cc" -o -name "*.h" -o -name "*.kts" -o -name "*.pro" \) -exec sed -i \
+    -e "s/me\.weishu\.kernelsu/$word1.$word2.$word3/g" \
+    -e "s/me\/weishu\/kernelsu/$word1\/$word2\/$word3/g" \
+    -e "s/me_weishu_kernelsu/${word1}_${word2}_${word3}/g" {} +
+
+# Randomize native JNI library name (libkernelsu.so -> lib<word3>.so)
+if [ -f "./app/src/main/cpp/CMakeLists.txt" ]; then
+    sed -i \
+        -e "s/project(\"kernelsu\")/project(\"$word3\")/g" \
+        -e "s/add_library(kernelsu/add_library($word3/g" \
+        -e "s/target_include_directories(kernelsu/target_include_directories($word3/g" \
+        -e "s/target_link_libraries(kernelsu/target_link_libraries($word3/g" \
+        ./app/src/main/cpp/CMakeLists.txt
+fi
+
+find app/src/main/java -type f \( -name "Natives.kt" -o -name "AppZygotePreload.java" \) -exec sed -i \
+    -e "s/loadLibrary(\"kernelsu\")/loadLibrary(\"$word3\")/g" {} +
+
+# Spoof visible app name and append -spoofed to versionName & APK archive name
+if [ -f "./app/build.gradle.kts" ]; then
+    sed -i "s/val defaultManagerName = if (isPrBuild) \"KernelSU PR\" else \"KernelSU\"/val defaultManagerName = \"$SPOOF_APP_NAME\"/" ./app/build.gradle.kts
+    sed -i 's/versionName = managerVersionName/versionName = "${managerVersionName}-spoofed"/' ./app/build.gradle.kts
+    sed -i 's/"${managerName.replace(" ", "_")}_${managerVersionName}_${managerVersionCode}"/"KernelSU_${managerVersionName}-spoofed_${managerVersionCode}"/' ./app/build.gradle.kts
+fi
+
+echo "Stealth spoofing completed successfully."

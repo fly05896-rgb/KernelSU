@@ -1,0 +1,17 @@
+name: ClangFormat check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  checks: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: check
+        working-directory: kernel
+        run: make check-format
