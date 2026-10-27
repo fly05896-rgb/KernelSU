@@ -189,10 +189,6 @@ androidComponents {
     }
 }
 
-tasks.withType<com.android.build.gradle.tasks.PackageAndroidArtifact> {
-    doFirst { appMetadata.asFile.orNull?.writeText("") }
-}
-
 base {
     archivesName.set(
         "${managerName.replace(" ", "_")}_${managerVersionName}_${managerVersionCode}"

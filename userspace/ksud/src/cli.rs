@@ -153,6 +153,12 @@ enum Commands {
         #[command(subcommand)]
         command: Initrc,
     },
+
+    /// Susfs management
+    Susfs {
+        #[command(subcommand)]
+        command: SusfsAction,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -865,7 +871,14 @@ pub fn run() -> Result<()> {
                 }
                 SusfsAutoloadAction::Disable => susfsd::set_autoload(false, None),
                 SusfsAutoloadAction::Status => {
-                    println!("{}", if susfsd::autoload_enabled()? { "enabled" } else { "disabled" });
+                    println!(
+                        "{}",
+                        if susfsd::autoload_enabled()? {
+                            "enabled"
+                        } else {
+                            "disabled"
+                        }
+                    );
                     Ok(())
                 }
             },

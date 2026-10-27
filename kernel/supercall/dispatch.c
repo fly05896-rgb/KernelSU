@@ -67,9 +67,6 @@ static int do_get_info(void __user *arg)
     if (ksu_preinit_enabled_param() && !ksu_late_loaded) {
         cmd.flags |= KSU_GET_INFO_FLAG_PREINIT;
     }
-#if KSU_IS_PR_BUILD
-    cmd.flags |= KSU_GET_INFO_FLAG_PR_BUILD;
-#endif
     cmd.features = KSU_FEATURE_MAX;
     cmd.uapi_version = KERNEL_SU_UAPI_VERSION;
 

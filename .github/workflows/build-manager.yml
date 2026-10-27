@@ -92,6 +92,7 @@ jobs:
   build-ksud:
     needs: [build-lkm, build-ksuinit]
     strategy:
+      fail-fast: false
       matrix:
         include:
           - target: aarch64-linux-android
@@ -106,6 +107,7 @@ jobs:
   build-ksud-extra:
     needs: [build-lkm, build-ksuinit]
     strategy:
+      fail-fast: false
       matrix:
         include:
           - target: x86_64-pc-windows-gnu
@@ -130,6 +132,7 @@ jobs:
     if: always() && needs.generate-key.result == 'success'
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         spoofed: [ false, true ]
     defaults:
@@ -198,6 +201,7 @@ jobs:
     if: always() && needs.build-manager.result == 'success' && needs.build-ksud.result == 'success' && needs.generate-key.result == 'success'
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         spoofed: [ false, true ]
 

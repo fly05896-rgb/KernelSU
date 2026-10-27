@@ -146,7 +146,7 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
             &format!("{package_name}/{package_name}.ui.MainActivity"),
         ])
         .status();
-    if status.map_or(true, |s| !s.success()) {
+    if !matches!(status, std::result::Result::Ok(s) if s.success()) {
         let _ = Command::new("am")
             .args([
                 "start",
